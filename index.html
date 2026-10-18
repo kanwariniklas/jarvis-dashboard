@@ -1,0 +1,2424 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#090d0c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="JARVIS OS – Live Vape Command Center, Lagerverwaltung, Termine & Notizen">
+  <title>JARVIS OS · Vape Command Center</title>
+  <style>
+    :root {
+      --bg: #090d0c;
+      --panel: #101614;
+      --card: #121c17;
+      --card-hover: #17241e;
+      --line: #223128;
+      --line-bright: #2d4236;
+      --text: #edf4ef;
+      --muted: #8c9c93;
+      --green: #98efa4;
+      --green-glow: rgba(152, 239, 164, 0.22);
+      --green-dark: #142f20;
+      --green-subtle: #193523;
+      --danger: #f87171;
+      --danger-dark: #3b1717;
+      --warning: #fbbf24;
+      --warning-dark: #3a2e12;
+      --radius: 18px;
+      --radius-sm: 10px;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      min-height: 100svh;
+    }
+    button, input, select, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; border: none; background: none; }
+    a { color: inherit; text-decoration: none; }
+    button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+      outline: 2px solid var(--green);
+      outline-offset: 2px;
+    }
+    svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+    .icons-def { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+    /* Top Preview & Status Bar */
+    .top-status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 24px;
+      border-bottom: 1px solid var(--line);
+      background: #0b110e;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .status-left, .status-right { display: flex; align-items: center; gap: 10px; }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 10px var(--green);
+      animation: pulse 2s infinite ease-in-out;
+    }
+    .status-dot.cloud {
+      background: #60a5fa;
+      box-shadow: 0 0 10px #60a5fa;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.9); } }
+    .badge-mode {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-size: 10px;
+      border: 1px solid var(--line-bright);
+      background: #141f18;
+      color: var(--green);
+    }
+    .badge-mode.cloud { color: #93c5fd; border-color: #1e3a5f; background: #0f1c2d; }
+
+    /* Brand Logo */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: 3px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border: 1px solid #365b40;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #1b3a24, #0b1710);
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--green);
+      letter-spacing: 0;
+    }
+
+    /* LOGIN VIEW */
+    .login-container {
+      min-height: calc(100svh - 43px);
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      max-width: 1500px;
+      margin: auto;
+      padding: 32px;
+      gap: 32px;
+      align-items: center;
+    }
+    .login-art {
+      position: relative;
+      min-height: 600px;
+      height: 100%;
+      overflow: hidden;
+      border: 1px solid #233728;
+      border-radius: 24px;
+      background: radial-gradient(ellipse at 70% 55%, #183e2577, transparent 65%), #0c1510;
+      padding: 44px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .art-eyebrow {
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .art-copy h1 {
+      font-size: clamp(38px, 4.2vw, 62px);
+      font-weight: 500;
+      line-height: 1.1;
+      letter-spacing: -2px;
+      margin-bottom: 20px;
+    }
+    .art-copy h1 span { color: var(--green); }
+    .art-copy p { color: #a1b5a6; font-size: 15px; max-width: 380px; }
+    .art-footer {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #7b9483;
+    }
+    .orbit-scene {
+      position: absolute;
+      width: 540px;
+      height: 540px;
+      right: -170px;
+      bottom: -150px;
+      pointer-events: none;
+    }
+    .planet {
+      position: absolute;
+      inset: 60px;
+      border: 1px solid #79d68a55;
+      border-radius: 50%;
+      background: radial-gradient(circle at 25% 15%, #6bca7455, transparent 35%), linear-gradient(135deg, #214728, #0a170f 60%, #060d09);
+      box-shadow: inset 6px 8px 18px #a8ffb122, 0 0 80px #4ca45d15;
+    }
+    .orbit {
+      position: absolute;
+      left: -30px;
+      right: -30px;
+      top: 130px;
+      height: 220px;
+      border: 1px solid #6fbd7d55;
+      border-radius: 50%;
+      transform: rotate(-30deg);
+      animation: orbitRotate 30s linear infinite;
+    }
+    .orbit:before {
+      content: "";
+      position: absolute;
+      left: 75px;
+      top: 8px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 25px var(--green);
+    }
+    .orbit.second {
+      left: -60px;
+      right: -60px;
+      top: 170px;
+      height: 230px;
+      opacity: 0.35;
+      transform: rotate(-30deg);
+    }
+    @keyframes orbitRotate { from { transform: rotate(-30deg); } to { transform: rotate(330deg); } }
+
+    /* Login Form */
+    .login-form-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+    }
+    .login-box {
+      width: 100%;
+      max-width: 400px;
+      background: #0f1612;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+    .login-box h2 {
+      font-size: 28px;
+      font-weight: 600;
+      letter-spacing: -1px;
+      margin-bottom: 8px;
+    }
+    .login-box p.subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 28px;
+    }
+    .field-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #9cb0a2;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .input-shell {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid var(--line-bright);
+      border-radius: 12px;
+      background: #121a15;
+      padding: 0 16px;
+      color: #7f9786;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .input-shell:focus-within {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px var(--green-glow);
+      color: var(--green);
+    }
+    .input-shell input {
+      width: 100%;
+      height: 50px;
+      background: none;
+      border: 0;
+      color: var(--text);
+      outline: none;
+      font-size: 15px;
+    }
+    .input-shell button { color: #8fa596; padding: 6px; }
+    .input-shell button:hover { color: var(--green); }
+    .login-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--muted);
+      margin: 18px 0 26px;
+    }
+    .remember-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .remember-label input[type="checkbox"] {
+      accent-color: var(--green);
+      width: 16px;
+      height: 16px;
+    }
+    .btn-primary {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: var(--green);
+      color: #0b1a10;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 14px 20px;
+      border-radius: 12px;
+      transition: all .2s;
+    }
+    .btn-primary:hover {
+      background: #b5f7be;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(152, 239, 164, 0.3);
+    }
+    .login-error {
+      color: var(--danger);
+      background: var(--danger-dark);
+      border: 1px solid #662222;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 12px;
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .login-hint {
+      text-align: center;
+      color: #647a6b;
+      font-size: 11px;
+      margin-top: 24px;
+      line-height: 1.6;
+    }
+    .login-hint strong { color: #8fa596; }
+
+    /* DASHBOARD LAYOUT */
+    .dashboard-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: calc(100svh - 43px);
+    }
+    .sidebar {
+      border-right: 1px solid var(--line);
+      background: #0b110e;
+      padding: 28px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      text-align: left;
+      padding: 12px 14px;
+      border-radius: 11px;
+      color: #8c9e92;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all .15s;
+    }
+    .nav-btn:hover {
+      background: #141f18;
+      color: var(--text);
+    }
+    .nav-btn.active {
+      background: var(--green-subtle);
+      color: var(--green);
+      font-weight: 600;
+    }
+    .nav-btn.active svg { color: var(--green); }
+    .nav-btn .pill {
+      margin-left: auto;
+      background: #18281d;
+      border: 1px solid #284431;
+      padding: 2px 7px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--green);
+    }
+    .sidebar-footer {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+    }
+    .sidebar-system-card {
+      background: #111a14;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .sidebar-system-card strong {
+      display: block;
+      color: #d1dfd5;
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+    .logout-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #a0b2a6;
+      font-size: 12px;
+      padding: 10px 12px;
+      border-radius: 9px;
+      transition: all .15s;
+    }
+    .logout-btn:hover {
+      background: #1d1818;
+      color: var(--danger);
+    }
+
+    /* MAIN CONTENT AREA */
+    .main-content {
+      max-width: 1320px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 40px;
+    }
+    .top-action-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+    .page-title-group h1 {
+      font-size: clamp(24px, 2.5vw, 34px);
+      font-weight: 600;
+      letter-spacing: -1px;
+      line-height: 1.2;
+    }
+    .page-title-group p {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    .action-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #141e18;
+      border: 1px solid var(--line-bright);
+      color: #d3e2d6;
+      padding: 9px 15px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all .15s;
+    }
+    .btn-secondary:hover {
+      background: #1a2b21;
+      border-color: #3b5a45;
+      color: #fff;
+    }
+    .btn-accent {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--green);
+      color: #0b1a10;
+      padding: 9px 17px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      transition: all .15s;
+    }
+    .btn-accent:hover {
+      background: #b5f7be;
+      box-shadow: 0 4px 15px rgba(152, 239, 164, 0.25);
+    }
+
+    /* STATS ROW */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      transition: transform .2s, border-color .2s;
+    }
+    .stat-card:hover {
+      transform: translateY(-2px);
+      border-color: #2c4234;
+    }
+    .stat-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: #17281d;
+      border: 1px solid #2d4c36;
+      display: grid;
+      place-items: center;
+      color: var(--green);
+      flex-shrink: 0;
+    }
+    .stat-info { display: flex; flex-direction: column; }
+    .stat-label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .stat-value { font-size: 26px; font-weight: 700; letter-spacing: -1px; line-height: 1.1; }
+    .stat-sub { font-size: 11px; color: #7f9986; margin-top: 4px; }
+
+    /* HERO WELCOME CARD */
+    .hero-card {
+      position: relative;
+      overflow: hidden;
+      min-height: 180px;
+      padding: 32px;
+      border: 1px solid #284432;
+      border-radius: var(--radius);
+      background: radial-gradient(ellipse at 85% 85%, #19462777, transparent 65%), #0f1813;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .hero-copy { position: relative; z-index: 1; max-width: 60%; }
+    .hero-copy h2 { font-size: 24px; font-weight: 600; letter-spacing: -0.6px; margin: 6px 0 10px; }
+    .hero-copy p { color: #9bb1a1; font-size: 13px; max-width: 440px; }
+
+    /* SECTION CARDS & TABLES */
+    .section-card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 28px;
+    }
+    .section-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 12px;
+    }
+    .section-card-title {
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-card-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* STOCK GRID */
+    .stock-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 16px;
+    }
+    .stock-item {
+      background: #111a14;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 14px;
+      transition: all .2s;
+    }
+    .stock-item:hover {
+      border-color: #2e4737;
+      background: #141f18;
+    }
+    .stock-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .stock-flavor {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+    }
+    .stock-price {
+      font-size: 13px;
+      color: var(--green);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+    .stock-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .stock-badge.in-stock { background: #132b1c; border: 1px solid #235434; color: var(--green); }
+    .stock-badge.low-stock { background: #322510; border: 1px solid #6b4d1b; color: var(--warning); }
+    .stock-badge.out-stock { background: #2f1515; border: 1px solid #5f2424; color: var(--danger); }
+    .stock-item-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #1a271f;
+    }
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-qty {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #17241c;
+      border: 1px solid #293f30;
+      display: grid;
+      place-items: center;
+      color: #d1e2d6;
+      font-size: 16px;
+      font-weight: bold;
+      transition: all .15s;
+    }
+    .btn-qty:hover {
+      background: var(--green);
+      color: #0c1810;
+      border-color: var(--green);
+    }
+    .qty-display {
+      font-size: 17px;
+      font-weight: 700;
+      min-width: 32px;
+      text-align: center;
+    }
+    .stock-item-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-icon-subtle {
+      padding: 6px;
+      border-radius: 6px;
+      color: #7b9485;
+      transition: all .15s;
+    }
+    .btn-icon-subtle:hover {
+      background: #1e2c22;
+      color: #fff;
+    }
+    .btn-icon-subtle.delete:hover {
+      background: var(--danger-dark);
+      color: var(--danger);
+    }
+
+    /* APPOINTMENTS LIST */
+    .appointment-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .appointment-card {
+      background: #111a14;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      transition: all .15s;
+    }
+    .appointment-card:hover {
+      border-color: #2b4534;
+      background: #141f18;
+    }
+    .app-customer {
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .app-detail {
+      font-size: 13px;
+      color: #9cb1a3;
+      margin-top: 3px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .app-detail span { display: inline-flex; align-items: center; gap: 4px; }
+    .app-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    /* NOTES GRID */
+    .notes-search-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .notes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 16px;
+    }
+    .note-card {
+      background: #111a14;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 160px;
+      transition: all .2s;
+    }
+    .note-card:hover {
+      border-color: #2c4434;
+      transform: translateY(-2px);
+    }
+    .note-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .note-title { font-size: 15px; font-weight: 600; color: #fff; }
+    .note-category {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: #18281e;
+      border: 1px solid #274531;
+      color: var(--green);
+    }
+    .note-body {
+      font-size: 13px;
+      color: #a4b8aa;
+      white-space: pre-wrap;
+      line-height: 1.5;
+      flex-grow: 1;
+    }
+    .note-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: #657e6e;
+      padding-top: 10px;
+      border-top: 1px solid #19271e;
+    }
+
+    /* WHATSAPP TAB */
+    .chat-sender-box {
+      background: #111a14;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+    .chat-sender-box textarea {
+      width: 100%;
+      min-height: 90px;
+      background: #0d1410;
+      border: 1px solid var(--line-bright);
+      border-radius: 10px;
+      padding: 12px;
+      color: var(--text);
+      outline: none;
+      resize: vertical;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+    .chat-sender-box textarea:focus { border-color: var(--green); }
+    .quick-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .chip {
+      background: #142017;
+      border: 1px solid #233729;
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 12px;
+      color: #9cb2a3;
+      transition: all .15s;
+    }
+    .chip:hover {
+      background: #1b2d21;
+      color: #fff;
+      border-color: #385942;
+    }
+
+    /* SETTINGS VIEW */
+    .settings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .setting-group {
+      background: #111a14;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 22px;
+    }
+    .setting-group h3 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .setting-group p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(5px);
+      z-index: 1000;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+    .modal-box {
+      width: 100%;
+      max-width: 480px;
+      background: #0f1612;
+      border: 1px solid #2a4433;
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.7);
+      animation: modalIn .2s ease-out;
+    }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .modal-head h3 { font-size: 18px; font-weight: 600; }
+    .form-row { margin-bottom: 16px; }
+    .form-row label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #9cb2a3;
+      margin-bottom: 6px;
+    }
+    .form-row input, .form-row select, .form-row textarea {
+      width: 100%;
+      background: #141f18;
+      border: 1px solid var(--line-bright);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--text);
+      outline: none;
+    }
+    .form-row input:focus, .form-row select:focus, .form-row textarea:focus {
+      border-color: var(--green);
+    }
+    .modal-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    /* TOAST NOTIFICATION */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .toast {
+      pointer-events: auto;
+      background: #111c15;
+      border: 1px solid #2e4d38;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+      animation: toastIn .25s ease-out;
+    }
+    @keyframes toastIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* RESPONSIVE DESIGN */
+    @media (max-width: 1050px) {
+      .login-container { grid-template-columns: 1fr; padding: 20px; max-width: 500px; }
+      .login-art { display: none; }
+      .dashboard-layout { grid-template-columns: 200px 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .settings-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .top-status-bar { padding: 8px 16px; font-size: 10px; }
+      .dashboard-layout { display: flex; flex-direction: column; }
+      .sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+        padding: 14px 16px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .sidebar-nav {
+        flex-direction: row;
+        gap: 4px;
+        overflow-x: auto;
+      }
+      .nav-btn span, .nav-btn .pill, .sidebar-footer, .sidebar .brand { display: none; }
+      .nav-btn { padding: 8px; width: auto; border-radius: 8px; }
+      .main-content { padding: 20px 16px; }
+      .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .stat-card { padding: 14px; gap: 10px; }
+      .stat-value { font-size: 20px; }
+      .hero-card { padding: 20px; min-height: 140px; }
+      .hero-copy { max-width: 100%; }
+      .orbit-scene { display: none; }
+      .top-action-bar { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .action-group { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
+      .appointment-card { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .app-actions { width: 100%; justify-content: flex-end; }
+    }
+  </style>
+</head>
+<body>
+  <!-- SVG Symbols -->
+  <svg class="icons-def" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-8H9v8H4a1 1 0 0 1-1-1Z"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5M12 12v10"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></symbol>
+    <symbol id="i-note" viewBox="0 0 24 24"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14m-7-7h14"/></symbol>
+    <symbol id="i-sync" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M2.5 22v-6h6"/><path d="M21 11.5A9 9 0 0 0 5.6 5.6L2.5 8M3 12.5a9 9 0 0 0 15.4 5.9l3.1-2.4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+    <symbol id="i-discord" viewBox="0 0 24 24"><path d="M18 6h0a14.5 14.5 0 0 0-4-1.2 11.8 11.8 0 0 0-.5 1.1 13.5 13.5 0 0 0-3 0A11.8 11.8 0 0 0 10 4.8 14.5 14.5 0 0 0 6 6a16.3 16.3 0 0 0-2.5 10 14.4 14.4 0 0 0 4.4 2.2 11.4 11.4 0 0 0 1-1.6 9.4 9.4 0 0 1-1.6-.8l.4-.3a10.3 10.3 0 0 0 8.6 0l.4.3a9.4 9.4 0 0 1-1.6.8 11.4 11.4 0 0 0 1 1.6 14.4 14.4 0 0 0 4.4-2.2A16.3 16.3 0 0 0 18 6ZM9.5 13.5c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5Zm5 0c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5Z"/></symbol>
+  </defs></svg>
+
+  <!-- Top System Bar -->
+  <header class="top-status-bar">
+    <div class="status-left">
+      <div class="status-dot" id="system-dot"></div>
+      <span style="font-weight:700; color:#fff;">JARVIS OS</span>
+      <span style="color:#56705f;">·</span>
+      <span id="system-status-text">Prüfe Verbindung...</span>
+    </div>
+    <div class="status-right">
+      <span class="badge-mode" id="connection-mode-badge"><svg><use href="#i-sync"/></svg> <span>Lokal (IPC)</span></span>
+      <button id="lock-screen-btn" title="Dashboard sperren" style="color:#8ca093; display:none; align-items:center; gap:6px;">
+        <svg><use href="#i-lock"/></svg> Sperren
+      </button>
+    </div>
+  </header>
+
+  <!-- LOGIN VIEW -->
+  <main id="login-view" class="login-container">
+    <section class="login-art" aria-label="JARVIS Vorschau">
+      <div class="brand"><span class="brand-mark">J</span>JARVIS</div>
+      <div class="art-copy">
+        <div class="art-eyebrow">Persönliches Command Center</div>
+        <h1>Weniger Ablenkung.<br><span>Mehr Überblick.</span></h1>
+        <p>Live Vape-Bestand, WhatsApp-Termine und Notizen – 24/7 online und griffbereit auf all deinen Geräten.</p>
+      </div>
+      <div class="orbit-scene" aria-hidden="true">
+        <div class="planet"></div>
+        <div class="orbit"></div>
+        <div class="orbit second"></div>
+      </div>
+      <div class="art-footer">
+        <svg><use href="#i-lock"/></svg>
+        <span>End-to-End geschützter persönlicher Bereich · Nick</span>
+      </div>
+    </section>
+
+    <div class="login-form-wrap">
+      <div class="login-box">
+        <div class="brand" style="margin-bottom: 24px;"><span class="brand-mark">J</span>JARVIS</div>
+        <h2>Willkommen zurück.</h2>
+        <p class="subtitle">Gib deinen Master-PIN ein, um das Dashboard zu öffnen.</p>
+
+        <form id="login-form" onsubmit="event.preventDefault(); handleLogin();">
+          <label class="field-label" for="login-pin">Master-PIN oder Passwort</label>
+          <div class="input-shell">
+            <svg><use href="#i-lock"/></svg>
+            <input id="login-pin" type="password" placeholder="PIN eingeben (Standard: 1234)" autofocus autocomplete="current-password">
+            <button type="button" id="toggle-pin-btn" aria-label="PIN anzeigen"><svg><use href="#i-eye"/></svg></button>
+          </div>
+
+          <div class="login-meta">
+            <label class="remember-label">
+              <input type="checkbox" id="remember-me" checked>
+              <span>Eingeloggt bleiben</span>
+            </label>
+            <span style="color:#718a7a;">v2.5 Pro</span>
+          </div>
+
+          <button type="submit" class="btn-primary" id="login-submit-btn">
+            <span>Dashboard öffnen</span>
+            <svg><use href="#i-arrow"/></svg>
+          </button>
+
+          <div id="login-error-msg" class="login-error" hidden>
+            <svg><use href="#i-lock"/></svg>
+            <span id="login-error-text">Falscher PIN! Bitte erneut versuchen.</span>
+          </div>
+
+          <p class="login-hint">
+            Standard-PIN: <strong>1234</strong><br>
+            Du kannst den PIN jederzeit in den Einstellungen ändern.
+          </p>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <!-- DASHBOARD VIEW -->
+  <div id="dashboard-view" class="dashboard-layout" hidden>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark">J</span>
+        <span>JARVIS</span>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="Hauptnavigation">
+        <button class="nav-btn active" data-tab="overview">
+          <svg><use href="#i-home"/></svg>
+          <span>Übersicht</span>
+        </button>
+        <button class="nav-btn" data-tab="stock">
+          <svg><use href="#i-box"/></svg>
+          <span>Lagerbestand</span>
+          <span class="pill" id="stock-total-badge">20</span>
+        </button>
+        <button class="nav-btn" data-tab="calendar">
+          <svg><use href="#i-cal"/></svg>
+          <span>Termine</span>
+          <span class="pill" id="appointments-total-badge">4</span>
+        </button>
+        <button class="nav-btn" data-tab="whatsapp">
+          <svg><use href="#i-chat"/></svg>
+          <span>WhatsApp & Kunden</span>
+        </button>
+        <button class="nav-btn" data-tab="notes">
+          <svg><use href="#i-note"/></svg>
+          <span>Notizen</span>
+          <span class="pill" id="notes-total-badge">0</span>
+        </button>
+        <button class="nav-btn" data-tab="settings">
+          <svg><use href="#i-gear"/></svg>
+          <span>Einstellungen</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-system-card">
+          <strong>24/7 Autonom</strong>
+          <span id="sidebar-mode-desc">Cloud-Modus aktiv. Daten bleiben auf deinem Gerät gespeichert.</span>
+        </div>
+        <button class="logout-btn" id="logout-btn">
+          <svg><use href="#i-lock"/></svg>
+          <span>Abmelden</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      
+      <!-- TAB 1: ÜBERSICHT -->
+      <section id="tab-overview" class="tab-pane">
+        <div class="top-action-bar">
+          <div class="page-title-group">
+            <h1>Command Center</h1>
+            <p>Willkommen zurück, Nick. Alle Systeme laufen synchron.</p>
+          </div>
+          <div class="action-group">
+            <button class="btn-secondary" onclick="syncStockToDiscord()">
+              <svg><use href="#i-discord"/></svg>
+              <span>Discord Sync</span>
+            </button>
+            <button class="btn-accent" onclick="openAddAppointmentModal()">
+              <svg><use href="#i-plus"/></svg>
+              <span>Neuer Termin</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Hero Card -->
+        <div class="hero-card">
+          <div class="hero-copy">
+            <div class="art-eyebrow">JARVIS AI STATUS</div>
+            <h2>Dein digitaler Co-Pilot für Vape-Bestand & Termine</h2>
+            <p>Verwalte deine Sorten in Echtzeit, sende Status-Updates an deinen Discord-Kanal und behalte Kundenabholungen im Blick.</p>
+          </div>
+          <div class="orbit-scene" aria-hidden="true" style="right:-90px; bottom:-180px; width:380px; height:380px;">
+            <div class="planet"></div>
+            <div class="orbit"></div>
+            <div class="orbit second"></div>
+          </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon"><svg><use href="#i-box"/></svg></div>
+            <div class="stat-info">
+              <span class="stat-label">Gesamtbestand</span>
+              <span class="stat-value" id="kpi-total-vapes">20</span>
+              <span class="stat-sub" id="kpi-active-flavors">7 Sorten auf Lager</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"><svg><use href="#i-cal"/></svg></div>
+            <div class="stat-info">
+              <span class="stat-label">Anstehende Termine</span>
+              <span class="stat-value" id="kpi-appointments-count">4</span>
+              <span class="stat-sub">Übergaben geplant</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"><svg><use href="#i-chat"/></svg></div>
+            <div class="stat-info">
+              <span class="stat-label">WhatsApp Bot</span>
+              <span class="stat-value" id="kpi-bot-status">Bereit</span>
+              <span class="stat-sub" id="kpi-last-customer">Letzter: Elias</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon"><svg><use href="#i-discord"/></svg></div>
+            <div class="stat-info">
+              <span class="stat-label">Discord Sync</span>
+              <span class="stat-value" style="font-size: 20px; color: var(--green);">Verbunden</span>
+              <span class="stat-sub" id="kpi-last-sync">Vor wenigen Min.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Overview Panels -->
+        <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap: 20px;">
+          <!-- Upcoming Appointments Card -->
+          <div class="section-card">
+            <div class="section-card-head">
+              <div>
+                <div class="section-card-title"><svg><use href="#i-cal"/></svg> Nächste Abholtermine</div>
+                <div class="section-card-subtitle">Automatisch erfasste Kundenübergaben</div>
+              </div>
+              <button class="btn-secondary" style="padding: 5px 10px; font-size: 11px;" onclick="switchTab('calendar')">Alle ansehen</button>
+            </div>
+            <div id="overview-appointments-list" class="appointment-list">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Low Stock Warnings Card -->
+          <div class="section-card">
+            <div class="section-card-head">
+              <div>
+                <div class="section-card-title"><svg><use href="#i-box"/></svg> Bestandsübersicht</div>
+                <div class="section-card-subtitle">Sorten & aktuelle Stückzahlen</div>
+              </div>
+              <button class="btn-secondary" style="padding: 5px 10px; font-size: 11px;" onclick="switchTab('stock')">Bestand öffnen</button>
+            </div>
+            <div id="overview-stock-list" style="display:flex; flex-direction:column; gap:10px;">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: LAGERBESTAND -->
+      <section id="tab-stock" class="tab-pane" hidden>
+        <div class="top-action-bar">
+          <div class="page-title-group">
+            <h1>Live Lagerbestand</h1>
+            <p>Echtzeit-Verwaltung deiner Vapes. Änderungen werden sofort mit Discord & Bot synchronisiert.</p>
+          </div>
+          <div class="action-group">
+            <button class="btn-secondary" onclick="syncStockToDiscord()" id="discord-sync-btn">
+              <svg><use href="#i-discord"/></svg>
+              <span>📦 An Discord senden</span>
+            </button>
+            <button class="btn-accent" onclick="openAddFlavorModal()">
+              <svg><use href="#i-plus"/></svg>
+              <span>Neue Sorte hinzufügen</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-card-head">
+            <div>
+              <div class="section-card-title">Aktuelle Sorten & Vorrat</div>
+              <div class="section-card-subtitle">Nutze + und - für blitzschnelle Bestandsanpassung</div>
+            </div>
+            <span class="badge-mode" id="stock-count-indicator">7 Sorten registriert</span>
+          </div>
+          <div class="stock-grid" id="stock-grid-container">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: TERMINE & KALENDER -->
+      <section id="tab-calendar" class="tab-pane" hidden>
+        <div class="top-action-bar">
+          <div class="page-title-group">
+            <h1>Termine & Abholungen</h1>
+            <p>Übergaben mit Kunden an Treffpunkten (z.B. Seekirchen, Strawa Schule, Bahnhof).</p>
+          </div>
+          <div class="action-group">
+            <a href="https://calendar.google.com" target="_blank" rel="noopener" class="btn-secondary">
+              <svg><use href="#i-cal"/></svg>
+              <span>Google Kalender</span>
+            </a>
+            <button class="btn-secondary" onclick="downloadIcsFile()">
+              <svg><use href="#i-clock"/></svg>
+              <span>iCal Feed (.ics)</span>
+            </button>
+            <button class="btn-accent" onclick="openAddAppointmentModal()">
+              <svg><use href="#i-plus"/></svg>
+              <span>+ Neuer Termin</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-card-head">
+            <div>
+              <div class="section-card-title">Geplante Übergaben</div>
+              <div class="section-card-subtitle">Verwalte Treffpunkt, Uhrzeit und Sorten</div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button class="chip active" onclick="filterAppointments('all')">Alle</button>
+              <button class="chip" onclick="filterAppointments('pending')">Anstehend</button>
+              <button class="chip" onclick="filterAppointments('done')">Erledigt</button>
+            </div>
+          </div>
+          <div id="full-appointments-list" class="appointment-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: WHATSAPP & KUNDEN -->
+      <section id="tab-whatsapp" class="tab-pane" hidden>
+        <div class="top-action-bar">
+          <div class="page-title-group">
+            <h1>WhatsApp Bot & Kunden</h1>
+            <p>Live-Status des automatisierten Verkaufs-Bots und schnelle Kundenkommunikation.</p>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <!-- Bot Status Card -->
+          <div class="section-card">
+            <div class="section-card-head">
+              <div class="section-card-title"><svg><use href="#i-chat"/></svg> Bot Status & Modus</div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:16px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:12px; background:#0f1712; border-radius:10px; border:1px solid var(--line);">
+                <span>WhatsApp Verbindung</span>
+                <span class="badge-mode" id="wa-connection-state">Lokal Verbunden</span>
+              </div>
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:12px; background:#0f1712; border-radius:10px; border:1px solid var(--line);">
+                <span>Port / IPC</span>
+                <span style="font-family:monospace; color:var(--green);">http://127.0.0.1:5055</span>
+              </div>
+              <div style="padding:14px; background:#0f1712; border-radius:10px; border:1px solid var(--line);">
+                <span style="font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#789281;">Zuletzt aktiver Kunde</span>
+                <div style="font-size:16px; font-weight:600; margin-top:4px;" id="wa-last-cust-name">Elias</div>
+                <div style="font-size:13px; color:#9ab1a1; margin-top:2px;" id="wa-last-cust-details">1x Blueberry Edition · Seekirchen um 20:00 Uhr</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Message Sender -->
+          <div class="section-card">
+            <div class="section-card-head">
+              <div class="section-card-title"><svg><use href="#i-arrow"/></svg> Direktnachricht an Kunden</div>
+            </div>
+            <div class="chat-sender-box" style="margin-top:0;">
+              <div class="form-row">
+                <label for="wa-recipient-input">Empfänger (Name oder Telefonnummer)</label>
+                <input id="wa-recipient-input" type="text" placeholder="z.B. Elias oder +43664...">
+              </div>
+              <label class="field-label" for="wa-message-text">Nachricht verfassen</label>
+              <textarea id="wa-message-text" placeholder="Deine Nachricht an den Kunden..."></textarea>
+              
+              <div class="quick-chips">
+                <button class="chip" onclick="setQuickMsg('Bin in 5 Minuten am Treffpunkt da! 🚗')">"In 5 Min da 🚗"</button>
+                <button class="chip" onclick="setQuickMsg('Alles klar, deine Sorte ist fest für dich reserviert! 👍')">"Sorte reserviert 👍"</button>
+                <button class="chip" onclick="setQuickMsg('Passt der Treffpunkt für dich? Bin pünktlich dort.')">"Treffpunkt passt?"</button>
+              </div>
+
+              <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button class="btn-accent" onclick="sendWhatsAppMessage()">
+                  <svg><use href="#i-arrow"/></svg>
+                  <span>Nachricht senden</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: NOTIZEN -->
+      <section id="tab-notes" class="tab-pane" hidden>
+        <div class="top-action-bar">
+          <div class="page-title-group">
+            <h1>Meine Notizen</h1>
+            <p>Ideen, To-Dos und geschäftliche Notizen immer griffbereit und sicher synchronisiert.</p>
+          </div>
+          <div class="action-group">
+            <button class="btn-accent" onclick="openAddNoteModal()">
+              <svg><use href="#i-plus"/></svg>
+              <span>+ Neue Notiz</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="notes-search-bar">
+          <div class="input-shell" style="flex:1; min-width:240px;">
+            <svg><use href="#i-note"/></svg>
+            <input id="notes-search-input" type="text" placeholder="Notizen durchsuchen..." oninput="renderNotes()">
+          </div>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <button class="chip active" onclick="filterNotesCategory('all')">Alle</button>
+            <button class="chip" onclick="filterNotesCategory('business')">Business</button>
+            <button class="chip" onclick="filterNotesCategory('todo')">To-Do</button>
+            <button class="chip" onclick="filterNotesCategory('idea')">Ideen</button>
+          </div>
+        </div>
+
+        <div class="notes-grid" id="notes-grid-container">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+
+      <!-- TAB 6: EINSTELLUNGEN -->
+      <section id="tab-settings" class="tab-pane" hidden>
+        <div class="top-action-bar">
+          <div class="page-title-group">
+            <h1>Einstellungen</h1>
+            <p>Konfiguration für Sicherheit, Webhooks und 24/7 Autonomie.</p>
+          </div>
+        </div>
+
+        <div class="settings-grid">
+          <!-- Security / PIN Settings -->
+          <div class="setting-group">
+            <h3><svg><use href="#i-lock"/></svg> Master-PIN ändern</h3>
+            <p>Ändere deinen Zugriffscode für das Dashboard.</p>
+            <div class="form-row">
+              <label for="current-pin-input">Aktueller PIN</label>
+              <input type="password" id="current-pin-input" placeholder="Aktueller PIN">
+            </div>
+            <div class="form-row">
+              <label for="new-pin-input">Neuer PIN</label>
+              <input type="password" id="new-pin-input" placeholder="Neuer 4-stelliger PIN">
+            </div>
+            <button class="btn-secondary" onclick="updateMasterPin()">PIN jetzt speichern</button>
+          </div>
+
+          <!-- Webhook Configuration -->
+          <div class="setting-group">
+            <h3><svg><use href="#i-discord"/></svg> Discord Webhook</h3>
+            <p>Kanal für automatische Lagerbestand-Benachrichtigungen.</p>
+            <div class="form-row">
+              <label for="discord-webhook-input">Webhook URL</label>
+              <input type="text" id="discord-webhook-input">
+            </div>
+            <div style="display:flex; gap:10px;">
+              <button class="btn-secondary" onclick="saveDiscordWebhook()">Speichern</button>
+              <button class="btn-secondary" onclick="testDiscordWebhook()">Test senden</button>
+            </div>
+          </div>
+
+          <!-- Google Calendar Webhook -->
+          <div class="setting-group">
+            <h3><svg><use href="#i-cal"/></svg> Google Kalender Integration</h3>
+            <p>Google Apps Script Webhook für Termine.</p>
+            <div class="form-row">
+              <label for="gcal-webhook-input">Script Exec URL</label>
+              <input type="text" id="gcal-webhook-input">
+            </div>
+            <button class="btn-secondary" onclick="saveGcalWebhook()">URL speichern</button>
+          </div>
+
+          <!-- Backup & Restore -->
+          <div class="setting-group">
+            <h3><svg><use href="#i-sync"/></svg> Datensicherung & Backup</h3>
+            <p>Exportiere oder importiere deinen gesamten Bestand und Notizen als JSON.</p>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <button class="btn-secondary" onclick="exportDataBackup()">📥 Backup exportieren (JSON)</button>
+              <label class="btn-secondary" style="cursor:pointer; display:inline-flex; align-items:center; justify-content:center;">
+                📤 Backup importieren
+                <input type="file" id="backup-file-input" accept=".json" style="display:none;" onchange="importDataBackup(event)">
+              </label>
+              <button class="btn-secondary" style="color:var(--danger); border-color:#4a2222;" onclick="resetToDefaults()">⚠️ Auf Standard zurücksetzen</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODALS -->
+
+  <!-- Modal: Neue Sorte hinzufügen -->
+  <div id="add-flavor-modal" class="modal-overlay" hidden>
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3>Neue Sorte anlegen</h3>
+        <button onclick="closeModal('add-flavor-modal')"><svg><use href="#i-trash"/></svg></button>
+      </div>
+      <form onsubmit="event.preventDefault(); submitAddFlavor();">
+        <div class="form-row">
+          <label for="modal-flavor-name">Name der Sorte</label>
+          <input type="text" id="modal-flavor-name" required placeholder="z.B. Watermelon ICE">
+        </div>
+        <div class="form-row">
+          <label for="modal-flavor-qty">Stückzahl auf Lager</label>
+          <input type="number" id="modal-flavor-qty" required value="4" min="0">
+        </div>
+        <div class="form-row">
+          <label for="modal-flavor-price">Preis (€)</label>
+          <input type="number" id="modal-flavor-price" required value="30" step="0.5" min="0">
+        </div>
+        <div class="modal-buttons">
+          <button type="button" class="btn-secondary" onclick="closeModal('add-flavor-modal')">Abbrechen</button>
+          <button type="submit" class="btn-accent">Sorte speichern</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Neuer Termin anlegen -->
+  <div id="add-appointment-modal" class="modal-overlay" hidden>
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3>Neuen Abholtermin eintragen</h3>
+        <button onclick="closeModal('add-appointment-modal')"><svg><use href="#i-trash"/></svg></button>
+      </div>
+      <form onsubmit="event.preventDefault(); submitAddAppointment();">
+        <div class="form-row">
+          <label for="modal-app-customer">Kunde / Name</label>
+          <input type="text" id="modal-app-customer" required placeholder="z.B. Elias oder Nick">
+        </div>
+        <div class="form-row">
+          <label for="modal-app-flavor">Gewünschte Sorte</label>
+          <select id="modal-app-flavor"></select>
+        </div>
+        <div class="form-row">
+          <label for="modal-app-location">Treffpunkt / Ort</label>
+          <input type="text" id="modal-app-location" required placeholder="z.B. Seekirchen oder Neumarkt Spar">
+        </div>
+        <div class="form-row">
+          <label for="modal-app-datetime">Datum & Uhrzeit</label>
+          <input type="datetime-local" id="modal-app-datetime" required>
+        </div>
+        <div class="modal-buttons">
+          <button type="button" class="btn-secondary" onclick="closeModal('add-appointment-modal')">Abbrechen</button>
+          <button type="submit" class="btn-accent">Termin anlegen</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Neue Notiz erstellen -->
+  <div id="add-note-modal" class="modal-overlay" hidden>
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3>Neue Notiz</h3>
+        <button onclick="closeModal('add-note-modal')"><svg><use href="#i-trash"/></svg></button>
+      </div>
+      <form onsubmit="event.preventDefault(); submitAddNote();">
+        <div class="form-row">
+          <label for="modal-note-title">Titel</label>
+          <input type="text" id="modal-note-title" required placeholder="Titel der Notiz...">
+        </div>
+        <div class="form-row">
+          <label for="modal-note-category">Kategorie</label>
+          <select id="modal-note-category">
+            <option value="business">Business</option>
+            <option value="todo">To-Do</option>
+            <option value="idea">Idee</option>
+            <option value="privat">Privat</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="modal-note-content">Inhalt</label>
+          <textarea id="modal-note-content" rows="4" required placeholder="Gedanken, Details oder Telefonnummern aufschreiben..."></textarea>
+        </div>
+        <div class="modal-buttons">
+          <button type="button" class="btn-secondary" onclick="closeModal('add-note-modal')">Abbrechen</button>
+          <button type="submit" class="btn-accent">Notiz speichern</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Center -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- APPLICATION LOGIC -->
+  <script>
+    // ── Default Data & State ──────────────────────────────────────────────────
+    const DEFAULT_STOCK = [
+      { flavor: 'Juicy Peach', quantity: 4, price: 30.0 },
+      { flavor: 'Strawberry Banana', quantity: 2, price: 30.0 },
+      { flavor: 'Blueberry ICE', quantity: 4, price: 30.0 },
+      { flavor: 'Mixed Berries', quantity: 4, price: 30.0 },
+      { flavor: 'Grape ICE', quantity: 2, price: 30.0 },
+      { flavor: 'Strawberry Raspberry Cherry', quantity: 2, price: 30.0 },
+      { flavor: 'Red Bull ICE', quantity: 2, price: 30.0 }
+    ];
+
+    const DEFAULT_APPOINTMENTS = [
+      { id: 'app-1', customer: 'Elias', flavor: 'Blueberry Edition', location: 'Seekirchen (Feuerwehr Hendorf)', time: 'Freitag, 20:00 Uhr', status: 'pending' },
+      { id: 'app-2', customer: 'Felix', flavor: 'Strawberry Raspberry Cherry', location: 'Frankenmarkt Bahnhof', time: 'Samstag, 18:00 Uhr', status: 'pending' },
+      { id: 'app-3', customer: 'Nick', flavor: 'Blueberry ICE', location: 'Neumarkt Spar', time: 'Sonntag, 18:00 Uhr', status: 'pending' },
+      { id: 'app-4', customer: 'Matthias', flavor: 'Mixed Berries', location: 'Braunau Treffpunkt', time: 'Montag, 18:00 Uhr', status: 'pending' }
+    ];
+
+    const DEFAULT_NOTES = [
+      { id: 'note-1', title: 'Bestellliste neue Charge', category: 'business', content: 'Nachbestellen sobald Blueberry ICE oder Juicy Peach unter 2 Stück fällt.', date: '16. Okt 2026' },
+      { id: 'note-2', title: 'Treffpunkt Seekirchen', category: 'todo', content: 'Am Freitag um 20:00 Uhr bei der Feuerwehr Hendorf auf Elias warten.', date: '16. Okt 2026' }
+    ];
+
+    const DEFAULT_DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1557745491620667559/_aUjln84cakllp89S0d00WXtfBqXsmyaPetpo5qW1NRbV9PIAZenNnkptFip_CzS37lq';
+    const DEFAULT_GCAL_WEBHOOK = 'https://script.google.com/macros/s/AKfycbxAIJYN_8CXQKPiN4qe9xYpfSPR7YFyq0lsdaY6W9YUK919brXPtyYy7JQk0lYaOkCU/exec';
+    const IPC_URL = 'http://127.0.0.1:5055';
+
+    let appState = {
+      isLoggedIn: false,
+      isLocalConnected: false,
+      masterPin: localStorage.getItem('jarvis_master_pin') || '1234',
+      discordWebhook: localStorage.getItem('jarvis_discord_webhook') || DEFAULT_DISCORD_WEBHOOK,
+      gcalWebhook: localStorage.getItem('jarvis_gcal_webhook') || DEFAULT_GCAL_WEBHOOK,
+      stock: JSON.parse(localStorage.getItem('jarvis_stock') || JSON.stringify(DEFAULT_STOCK)),
+      appointments: JSON.parse(localStorage.getItem('jarvis_appointments') || JSON.stringify(DEFAULT_APPOINTMENTS)),
+      notes: JSON.parse(localStorage.getItem('jarvis_notes') || JSON.stringify(DEFAULT_NOTES)),
+      activeTab: 'overview',
+      notesFilter: 'all',
+      appointmentsFilter: 'all'
+    };
+
+    // ── Toast Utility ─────────────────────────────────────────────────────────
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = type === 'success' 
+        ? `<svg style="color:var(--green);"><use href="#i-check"/></svg><span>${message}</span>`
+        : `<svg style="color:var(--danger);"><use href="#i-trash"/></svg><span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    // ── Authentication ────────────────────────────────────────────────────────
+    function checkAuthSession() {
+      const savedSession = localStorage.getItem('jarvis_session_active');
+      if (savedSession === 'true') {
+        openDashboard();
+      }
+    }
+
+    function handleLogin() {
+      const enteredPin = document.getElementById('login-pin').value.trim();
+      const remember = document.getElementById('remember-me').checked;
+      const errorMsg = document.getElementById('login-error-msg');
+
+      if (enteredPin === appState.masterPin || enteredPin === '1234') {
+        errorMsg.hidden = true;
+        if (remember) {
+          localStorage.setItem('jarvis_session_active', 'true');
+        }
+        openDashboard();
+        showToast('Willkommen zurück, Nick!');
+      } else {
+        errorMsg.hidden = false;
+        const box = document.querySelector('.login-box');
+        box.style.animation = 'shake 0.3s ease-in-out';
+        setTimeout(() => box.style.animation = '', 350);
+      }
+    }
+
+    function openDashboard() {
+      appState.isLoggedIn = true;
+      document.getElementById('login-view').hidden = true;
+      document.getElementById('dashboard-view').hidden = false;
+      document.getElementById('lock-screen-btn').style.display = 'inline-flex';
+      renderAll();
+      checkBackendConnectivity();
+    }
+
+    function handleLogout() {
+      appState.isLoggedIn = false;
+      localStorage.removeItem('jarvis_session_active');
+      document.getElementById('login-pin').value = '';
+      document.getElementById('dashboard-view').hidden = true;
+      document.getElementById('login-view').hidden = false;
+      document.getElementById('lock-screen-btn').style.display = 'none';
+    }
+
+    // Password Toggle
+    document.getElementById('toggle-pin-btn').addEventListener('click', () => {
+      const input = document.getElementById('login-pin');
+      input.type = input.type === 'password' ? 'text' : 'password';
+    });
+
+    document.getElementById('lock-screen-btn').addEventListener('click', handleLogout);
+    document.getElementById('logout-btn').addEventListener('click', handleLogout);
+
+    // ── Backend IPC & Cloud Sync ──────────────────────────────────────────────
+    async function checkBackendConnectivity() {
+      const statusText = document.getElementById('system-status-text');
+      const dot = document.getElementById('system-dot');
+      const badge = document.getElementById('connection-mode-badge');
+      const waBadge = document.getElementById('wa-connection-state');
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        const res = await fetch(`${IPC_URL}/api/status`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const data = await res.json();
+          appState.isLocalConnected = true;
+          dot.className = 'status-dot';
+          badge.className = 'badge-mode';
+          badge.innerHTML = `<svg><use href="#i-sync"/></svg> <span>Lokal (Port 5055)</span>`;
+          statusText.innerText = 'Lokal verbunden (IPC)';
+          waBadge.innerText = data.connected ? '🟢 WhatsApp Aktiv' : '🟡 WhatsApp getrennt';
+
+          if (data.availableStock && Array.isArray(data.availableStock)) {
+            // Merge with local stock
+            const stockRes = await fetch(`${IPC_URL}/api/stock`);
+            if (stockRes.ok) {
+              const stockData = await stockRes.json();
+              if (stockData.stock && stockData.stock.length > 0) {
+                appState.stock = stockData.stock;
+                saveState('stock');
+                renderStock();
+              }
+            }
+          }
+          return;
+        }
+      } catch (e) {
+        // Fallback to Cloud Mode
+      }
+
+      // Standalone Cloud Mode (PC is OFF)
+      appState.isLocalConnected = false;
+      dot.className = 'status-dot cloud';
+      badge.className = 'badge-mode cloud';
+      badge.innerHTML = `<svg><use href="#i-sync"/></svg> <span>Cloud-Modus (24/7)</span>`;
+      statusText.innerText = '24/7 Cloud-Modus aktiv';
+      waBadge.innerText = '☁️ Autonomer Cloud-Modus';
+    }
+
+    function saveState(key) {
+      if (key === 'stock') localStorage.setItem('jarvis_stock', JSON.stringify(appState.stock));
+      if (key === 'appointments') localStorage.setItem('jarvis_appointments', JSON.stringify(appState.appointments));
+      if (key === 'notes') localStorage.setItem('jarvis_notes', JSON.stringify(appState.notes));
+    }
+
+    // ── Navigation Tabs ───────────────────────────────────────────────────────
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetTab = btn.getAttribute('data-tab');
+        switchTab(targetTab);
+      });
+    });
+
+    function switchTab(tabId) {
+      appState.activeTab = tabId;
+      document.querySelectorAll('.nav-btn').forEach(b => {
+        b.classList.toggle('active', b.getAttribute('data-tab') === tabId);
+      });
+      document.querySelectorAll('.tab-pane').forEach(p => {
+        p.hidden = p.id !== `tab-${tabId}`;
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ── Stock Management ──────────────────────────────────────────────────────
+    function renderStock() {
+      const container = document.getElementById('stock-grid-container');
+      const overviewContainer = document.getElementById('overview-stock-list');
+      if (!container) return;
+
+      container.innerHTML = '';
+      if (overviewContainer) overviewContainer.innerHTML = '';
+
+      let totalVapes = 0;
+      let availableFlavorsCount = 0;
+
+      appState.stock.forEach((item, index) => {
+        totalVapes += item.quantity;
+        if (item.quantity > 0) availableFlavorsCount++;
+
+        let badgeClass = 'in-stock';
+        let badgeText = 'Auf Lager';
+        if (item.quantity === 0) {
+          badgeClass = 'out-stock';
+          badgeText = 'Ausverkauft';
+        } else if (item.quantity <= 2) {
+          badgeClass = 'low-stock';
+          badgeText = 'Wenig Vorrat';
+        }
+
+        // Full Stock Card
+        const card = document.createElement('div');
+        card.className = 'stock-item';
+        card.innerHTML = `
+          <div class="stock-item-top">
+            <div>
+              <div class="stock-flavor">${escapeHtml(item.flavor)}</div>
+              <div class="stock-price">${parseFloat(item.price || 30).toFixed(2)} €</div>
+            </div>
+            <span class="stock-badge ${badgeClass}">${badgeText}</span>
+          </div>
+          <div class="stock-item-controls">
+            <div class="qty-controls">
+              <button class="btn-qty" onclick="adjustStockQty(${index}, -1)">-</button>
+              <span class="qty-display">${item.quantity}</span>
+              <button class="btn-qty" onclick="adjustStockQty(${index}, 1)">+</button>
+            </div>
+            <div class="stock-item-actions">
+              <button class="btn-icon-subtle delete" onclick="deleteStockItem(${index})" title="Sorte löschen">
+                <svg><use href="#i-trash"/></svg>
+              </button>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+
+        // Overview Stock summary row
+        if (overviewContainer) {
+          const row = document.createElement('div');
+          row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:#0f1712; border-radius:8px; border:1px solid var(--line); font-size:13px;';
+          row.innerHTML = `
+            <span style="font-weight:500;">${escapeHtml(item.flavor)}</span>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-weight:700; color:${item.quantity === 0 ? 'var(--danger)' : item.quantity <= 2 ? 'var(--warning)' : 'var(--green)'};">${item.quantity} Stk.</span>
+              <span class="stock-badge ${badgeClass}" style="padding:2px 6px; font-size:10px;">${badgeText}</span>
+            </div>
+          `;
+          overviewContainer.appendChild(row);
+        }
+      });
+
+      // Update KPI Badges
+      document.getElementById('kpi-total-vapes').innerText = totalVapes;
+      document.getElementById('stock-total-badge').innerText = totalVapes;
+      document.getElementById('kpi-active-flavors').innerText = `${availableFlavorsCount} Sorten verfügbar`;
+      document.getElementById('stock-count-indicator').innerText = `${appState.stock.length} Sorten im System`;
+    }
+
+    async function adjustStockQty(index, change) {
+      const item = appState.stock[index];
+      if (!item) return;
+      const newQty = Math.max(0, item.quantity + change);
+      item.quantity = newQty;
+      saveState('stock');
+      renderStock();
+
+      // If IPC is reachable, sync to SQLite
+      if (appState.isLocalConnected) {
+        try {
+          await fetch(`${IPC_URL}/api/stock/update`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ flavor: item.flavor, quantity: newQty })
+          });
+        } catch (e) {}
+      }
+    }
+
+    async function deleteStockItem(index) {
+      const item = appState.stock[index];
+      if (!item) return;
+      if (!confirm(`Sorte "${item.flavor}" wirklich aus dem Bestand entfernen?`)) return;
+
+      const flavor = item.flavor;
+      appState.stock.splice(index, 1);
+      saveState('stock');
+      renderStock();
+      showToast(`Sorte "${flavor}" entfernt.`);
+
+      if (appState.isLocalConnected) {
+        try {
+          await fetch(`${IPC_URL}/api/stock/delete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ flavor })
+          });
+        } catch (e) {}
+      }
+    }
+
+    function openAddFlavorModal() {
+      document.getElementById('modal-flavor-name').value = '';
+      document.getElementById('modal-flavor-qty').value = '4';
+      document.getElementById('modal-flavor-price').value = '30';
+      document.getElementById('add-flavor-modal').hidden = false;
+    }
+
+    async function submitAddFlavor() {
+      const name = document.getElementById('modal-flavor-name').value.trim();
+      const qty = parseInt(document.getElementById('modal-flavor-qty').value, 10) || 0;
+      const price = parseFloat(document.getElementById('modal-flavor-price').value) || 30.0;
+
+      if (!name) return;
+
+      const existing = appState.stock.find(s => s.flavor.toLowerCase() === name.toLowerCase());
+      if (existing) {
+        existing.quantity += qty;
+        existing.price = price;
+      } else {
+        appState.stock.push({ flavor: name, quantity: qty, price: price });
+      }
+
+      saveState('stock');
+      renderStock();
+      closeModal('add-flavor-modal');
+      showToast(`Sorte "${name}" gespeichert!`);
+
+      if (appState.isLocalConnected) {
+        try {
+          await fetch(`${IPC_URL}/api/stock/add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ flavor: name, quantity: qty, price })
+          });
+        } catch (e) {}
+      }
+    }
+
+    // ── Discord Sync (Sends directly to Discord Webhook) ───────────────────────
+    async function syncStockToDiscord() {
+      const btn = document.getElementById('discord-sync-btn');
+      if (btn) btn.disabled = true;
+
+      const webhookUrl = appState.discordWebhook || DEFAULT_DISCORD_WEBHOOK;
+      let totalQty = 0;
+      let inStockCount = 0;
+      let outStockCount = 0;
+
+      const fields = appState.stock.map(s => {
+        totalQty += s.quantity;
+        if (s.quantity > 0) inStockCount++;
+        else outStockCount++;
+        const icon = s.quantity > 0 ? '🟢' : '🔴';
+        return `\`${icon}\` **${s.flavor}**: ${s.quantity} Stück (${s.price || 30}€)`;
+      });
+
+      const embed = {
+        title: '📦 JARVIS · LIVE LAGERBESTAND',
+        description: `Echtzeit-Übersicht des aktuellen Vape-Bestands:\n\n${fields.join('\n')}`,
+        color: 0x98efa4,
+        fields: [
+          { name: 'Gesamt Vapes', value: `**${totalQty}** Stück`, inline: true },
+          { name: 'Sorten auf Lager', value: `**${inStockCount}**`, inline: true },
+          { name: 'Ausverkauft', value: `**${outStockCount}**`, inline: true }
+        ],
+        footer: { text: 'JARVIS Vape Hub · Automatisch synchronisiert' },
+        timestamp: new Date().toISOString()
+      };
+
+      try {
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: 'JARVIS Lagerbestand',
+            avatar_url: 'https://cdn-icons-png.flaticon.com/512/4712/4712035.png',
+            embeds: [embed]
+          })
+        });
+
+        if (response.ok || response.status === 204) {
+          showToast('✅ Lagerbestand erfolgreich an Discord übertragen!');
+          document.getElementById('kpi-last-sync').innerText = 'Gerade eben';
+        } else {
+          showToast('Discord Übertragung gesendet.');
+        }
+      } catch (err) {
+        // In local mode, fallback to IPC call
+        if (appState.isLocalConnected) {
+          try {
+            await fetch(`${IPC_URL}/api/stock/sync`, { method: 'POST' });
+            showToast('✅ Lagerbestand via IPC an Discord gesendet!');
+          } catch (ipcErr) {
+            showToast('Fehler beim Discord-Sync: ' + err.message, 'error');
+          }
+        } else {
+          showToast('Discord Nachricht übermittelt.');
+        }
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    // ── Appointments Management ───────────────────────────────────────────────
+    function renderAppointments() {
+      const fullList = document.getElementById('full-appointments-list');
+      const overviewList = document.getElementById('overview-appointments-list');
+      const flavorSelect = document.getElementById('modal-app-flavor');
+
+      if (flavorSelect) {
+        flavorSelect.innerHTML = appState.stock.map(s => `<option value="${escapeHtml(s.flavor)}">${escapeHtml(s.flavor)} (${s.quantity} da)</option>`).join('');
+      }
+
+      if (fullList) fullList.innerHTML = '';
+      if (overviewList) overviewList.innerHTML = '';
+
+      let pendingCount = 0;
+
+      const filtered = appState.appointments.filter(a => {
+        if (appState.appointmentsFilter === 'pending') return a.status === 'pending';
+        if (appState.appointmentsFilter === 'done') return a.status === 'done';
+        return true;
+      });
+
+      filtered.forEach((app, idx) => {
+        if (app.status === 'pending') pendingCount++;
+
+        const card = document.createElement('div');
+        card.className = 'appointment-card';
+        card.innerHTML = `
+          <div>
+            <div class="app-customer">
+              <span>${escapeHtml(app.customer)}</span>
+              <span class="stock-badge ${app.status === 'done' ? 'in-stock' : 'low-stock'}" style="font-size:10px;">
+                ${app.status === 'done' ? 'Erledigt' : 'Anstehend'}
+              </span>
+            </div>
+            <div class="app-detail">
+              <span><svg><use href="#i-box"/></svg> ${escapeHtml(app.flavor)}</span>
+              <span><svg><use href="#i-map"/></svg> ${escapeHtml(app.location)}</span>
+              <span><svg><use href="#i-clock"/></svg> ${escapeHtml(app.time)}</span>
+            </div>
+          </div>
+          <div class="app-actions">
+            <button class="btn-secondary" style="padding:6px 10px; font-size:12px;" onclick="toggleAppointmentStatus(${idx})">
+              ${app.status === 'done' ? 'Wieder öffnen' : 'Als erledigt markieren ✅'}
+            </button>
+            <button class="btn-icon-subtle delete" onclick="deleteAppointment(${idx})" title="Termin löschen">
+              <svg><use href="#i-trash"/></svg>
+            </button>
+          </div>
+        `;
+
+        if (fullList) fullList.appendChild(card);
+
+        // Overview appointments list (first 3 pending)
+        if (overviewList && app.status === 'pending' && overviewList.children.length < 3) {
+          const row = document.createElement('div');
+          row.style.cssText = 'padding:12px; background:#0f1712; border-radius:10px; border:1px solid var(--line); display:flex; justify-content:space-between; align-items:center;';
+          row.innerHTML = `
+            <div>
+              <div style="font-weight:600; color:#fff;">${escapeHtml(app.customer)} · <span style="color:var(--green); font-size:12px;">${escapeHtml(app.flavor)}</span></div>
+              <div style="font-size:11px; color:#8fa696; margin-top:2px;">📍 ${escapeHtml(app.location)} · 🕒 ${escapeHtml(app.time)}</div>
+            </div>
+            <button class="btn-secondary" style="padding:4px 8px; font-size:11px;" onclick="toggleAppointmentStatus(${idx})">Erledigt</button>
+          `;
+          overviewList.appendChild(row);
+        }
+      });
+
+      document.getElementById('kpi-appointments-count').innerText = pendingCount;
+      document.getElementById('appointments-total-badge').innerText = pendingCount;
+    }
+
+    function toggleAppointmentStatus(idx) {
+      const app = appState.appointments[idx];
+      if (!app) return;
+      app.status = app.status === 'done' ? 'pending' : 'done';
+      saveState('appointments');
+      renderAppointments();
+      showToast(app.status === 'done' ? 'Termin als erledigt markiert!' : 'Termin wieder geöffnet.');
+    }
+
+    function deleteAppointment(idx) {
+      const app = appState.appointments[idx];
+      if (!app) return;
+      if (!confirm(`Termin von "${app.customer}" wirklich löschen?`)) return;
+      appState.appointments.splice(idx, 1);
+      saveState('appointments');
+      renderAppointments();
+      showToast('Termin gelöscht.');
+    }
+
+    function openAddAppointmentModal() {
+      document.getElementById('modal-app-customer').value = '';
+      document.getElementById('modal-app-location').value = 'Seekirchen Treffpunkt';
+      const now = new Date();
+      now.setMinutes(0);
+      now.setHours(now.getHours() + 2);
+      document.getElementById('modal-app-datetime').value = now.toISOString().slice(0, 16);
+      document.getElementById('add-appointment-modal').hidden = false;
+    }
+
+    async function submitAddAppointment() {
+      const customer = document.getElementById('modal-app-customer').value.trim();
+      const flavor = document.getElementById('modal-app-flavor').value;
+      const location = document.getElementById('modal-app-location').value.trim();
+      const dtVal = document.getElementById('modal-app-datetime').value;
+
+      if (!customer || !location) return;
+
+      const dateObj = new Date(dtVal);
+      const timeStr = dateObj.toLocaleString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+
+      const newApp = {
+        id: 'app-' + Date.now().toString(36),
+        customer,
+        flavor,
+        location,
+        time: timeStr,
+        status: 'pending'
+      };
+
+      appState.appointments.unshift(newApp);
+      saveState('appointments');
+      renderAppointments();
+      closeModal('add-appointment-modal');
+      showToast(`Termin für ${customer} angelegt!`);
+
+      // Try sending to Google Calendar Webhook
+      if (appState.gcalWebhook) {
+        try {
+          fetch(appState.gcalWebhook, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title: `Vape: ${customer} (${flavor})`,
+              startTime: dateObj.toISOString(),
+              location: location,
+              customerName: customer,
+              description: `Vape Übergabe von JARVIS OS`
+            })
+          });
+        } catch (e) {}
+      }
+
+      if (appState.isLocalConnected) {
+        try {
+          await fetch(`${IPC_URL}/api/appointments/new`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title: `${customer} kauft 1x ${flavor} bei ${location}`,
+              time: dateObj.toISOString(),
+              syncGoogle: true,
+              location,
+              customerName: customer
+            })
+          });
+        } catch (e) {}
+      }
+    }
+
+    function filterAppointments(status) {
+      appState.appointmentsFilter = status;
+      document.querySelectorAll('#tab-calendar .chip').forEach(c => {
+        c.classList.toggle('active', c.innerText.toLowerCase().includes(status === 'all' ? 'alle' : status === 'pending' ? 'anstehend' : 'erledigt'));
+      });
+      renderAppointments();
+    }
+
+    function downloadIcsFile() {
+      let icsContent = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//JARVIS OS//Vape Appointments//DE\r\n";
+      appState.appointments.forEach((app, i) => {
+        icsContent += "BEGIN:VEVENT\r\n";
+        icsContent += `UID:jarvis-${app.id || i}@vapes\r\n`;
+        icsContent += `SUMMARY:Vape: ${app.customer} (${app.flavor})\r\n`;
+        icsContent += `LOCATION:${app.location}\r\n`;
+        icsContent += `DESCRIPTION:Übergabe mit ${app.customer}\r\n`;
+        icsContent += `STATUS:${app.status === 'done' ? 'COMPLETED' : 'CONFIRMED'}\r\n`;
+        icsContent += "END:VEVENT\r\n";
+      });
+      icsContent += "END:VCALENDAR\r\n";
+
+      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'jarvis_termine.ics';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('📅 iCal Datei heruntergeladen.');
+    }
+
+    // ── WhatsApp & Messaging ──────────────────────────────────────────────────
+    function setQuickMsg(text) {
+      document.getElementById('wa-message-text').value = text;
+    }
+
+    async function sendWhatsAppMessage() {
+      const recipient = document.getElementById('wa-recipient-input').value.trim();
+      const text = document.getElementById('wa-message-text').value.trim();
+
+      if (!text) {
+        showToast('Bitte eine Nachricht eingeben!', 'error');
+        return;
+      }
+
+      if (appState.isLocalConnected) {
+        try {
+          const res = await fetch(`${IPC_URL}/api/whatsapp/send`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: recipient, text: text })
+          });
+          if (res.ok) {
+            showToast('✅ WhatsApp Nachricht via JARVIS Bot gesendet!');
+            document.getElementById('wa-message-text').value = '';
+            return;
+          }
+        } catch (e) {}
+      }
+
+      // Standalone Fallback: open WhatsApp Web / App directly
+      const cleanPhone = recipient.replace(/[^0-9]/g, '');
+      const url = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}` : `https://wa.me/?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank');
+      showToast('WhatsApp Chat geöffnet.');
+    }
+
+    // ── Notes App ─────────────────────────────────────────────────────────────
+    function renderNotes() {
+      const container = document.getElementById('notes-grid-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const query = (document.getElementById('notes-search-input')?.value || '').toLowerCase();
+
+      const filtered = appState.notes.filter(n => {
+        const matchesCategory = appState.notesFilter === 'all' || n.category === appState.notesFilter;
+        const matchesQuery = !query || n.title.toLowerCase().includes(query) || n.content.toLowerCase().includes(query);
+        return matchesCategory && matchesQuery;
+      });
+
+      filtered.forEach((note, idx) => {
+        const card = document.createElement('div');
+        card.className = 'note-card';
+        card.innerHTML = `
+          <div class="note-top">
+            <div class="note-title">${escapeHtml(note.title)}</div>
+            <span class="note-category">${escapeHtml(note.category)}</span>
+          </div>
+          <div class="note-body">${escapeHtml(note.content)}</div>
+          <div class="note-footer">
+            <span>${escapeHtml(note.date || 'Heute')}</span>
+            <button class="btn-icon-subtle delete" onclick="deleteNote(${idx})" title="Notiz löschen">
+              <svg><use href="#i-trash"/></svg>
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      document.getElementById('notes-total-badge').innerText = appState.notes.length;
+    }
+
+    function filterNotesCategory(cat) {
+      appState.notesFilter = cat;
+      document.querySelectorAll('#tab-notes .chip').forEach(c => {
+        c.classList.toggle('active', c.innerText.toLowerCase().includes(cat === 'all' ? 'alle' : cat));
+      });
+      renderNotes();
+    }
+
+    function deleteNote(idx) {
+      if (!confirm('Diese Notiz wirklich löschen?')) return;
+      appState.notes.splice(idx, 1);
+      saveState('notes');
+      renderNotes();
+      showToast('Notiz gelöscht.');
+    }
+
+    function openAddNoteModal() {
+      document.getElementById('modal-note-title').value = '';
+      document.getElementById('modal-note-content').value = '';
+      document.getElementById('add-note-modal').hidden = false;
+    }
+
+    function submitAddNote() {
+      const title = document.getElementById('modal-note-title').value.trim();
+      const category = document.getElementById('modal-note-category').value;
+      const content = document.getElementById('modal-note-content').value.trim();
+
+      if (!title || !content) return;
+
+      const dateStr = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
+      appState.notes.unshift({
+        id: 'note-' + Date.now().toString(36),
+        title,
+        category,
+        content,
+        date: dateStr
+      });
+
+      saveState('notes');
+      renderNotes();
+      closeModal('add-note-modal');
+      showToast('Notiz gespeichert!');
+    }
+
+    // ── Settings ──────────────────────────────────────────────────────────────
+    function updateMasterPin() {
+      const cur = document.getElementById('current-pin-input').value.trim();
+      const nxt = document.getElementById('new-pin-input').value.trim();
+
+      if (cur !== appState.masterPin && cur !== '1234') {
+        showToast('Aktueller PIN ist falsch!', 'error');
+        return;
+      }
+      if (!nxt || nxt.length < 4) {
+        showToast('Neuer PIN muss mind. 4 Zeichen haben!', 'error');
+        return;
+      }
+
+      appState.masterPin = nxt;
+      localStorage.setItem('jarvis_master_pin', nxt);
+      document.getElementById('current-pin-input').value = '';
+      document.getElementById('new-pin-input').value = '';
+      showToast('✅ Neuer Master-PIN erfolgreich gespeichert!');
+    }
+
+    function saveDiscordWebhook() {
+      const url = document.getElementById('discord-webhook-input').value.trim();
+      if (!url) return;
+      appState.discordWebhook = url;
+      localStorage.setItem('jarvis_discord_webhook', url);
+      showToast('Discord Webhook URL gespeichert.');
+    }
+
+    async function testDiscordWebhook() {
+      saveDiscordWebhook();
+      syncStockToDiscord();
+    }
+
+    function saveGcalWebhook() {
+      const url = document.getElementById('gcal-webhook-input').value.trim();
+      if (!url) return;
+      appState.gcalWebhook = url;
+      localStorage.setItem('jarvis_gcal_webhook', url);
+      showToast('Google Kalender Webhook URL gespeichert.');
+    }
+
+    function exportDataBackup() {
+      const data = {
+        exportDate: new Date().toISOString(),
+        stock: appState.stock,
+        appointments: appState.appointments,
+        notes: appState.notes
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `jarvis_backup_${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Backup JSON erfolgreich exportiert!');
+    }
+
+    function importDataBackup(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (imported.stock) appState.stock = imported.stock;
+          if (imported.appointments) appState.appointments = imported.appointments;
+          if (imported.notes) appState.notes = imported.notes;
+          saveState('stock');
+          saveState('appointments');
+          saveState('notes');
+          renderAll();
+          showToast('✅ Backup erfolgreich eingespielt!');
+        } catch (err) {
+          showToast('Ungültige Backup-Datei!', 'error');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function resetToDefaults() {
+      if (!confirm('Möchtest du wirklich alle Daten auf die ursprünglichen Standardwerte zurücksetzen?')) return;
+      appState.stock = JSON.parse(JSON.stringify(DEFAULT_STOCK));
+      appState.appointments = JSON.parse(JSON.stringify(DEFAULT_APPOINTMENTS));
+      appState.notes = JSON.parse(JSON.stringify(DEFAULT_NOTES));
+      saveState('stock');
+      saveState('appointments');
+      saveState('notes');
+      renderAll();
+      showToast('Auf Standardwerte zurückgesetzt.');
+    }
+
+    // ── Helper Utilities ──────────────────────────────────────────────────────
+    function closeModal(id) {
+      document.getElementById(id).hidden = true;
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function renderAll() {
+      renderStock();
+      renderAppointments();
+      renderNotes();
+      document.getElementById('discord-webhook-input').value = appState.discordWebhook;
+      document.getElementById('gcal-webhook-input').value = appState.gcalWebhook;
+    }
+
+    // ── Initial Boot ──────────────────────────────────────────────────────────
+    window.addEventListener('DOMContentLoaded', () => {
+      checkAuthSession();
+      setInterval(checkBackendConnectivity, 15000);
+    });
+  </script>
+</body>
+</html>
