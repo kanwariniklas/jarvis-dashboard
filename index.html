@@ -1450,11 +1450,14 @@
         <div class="section-card" style="padding: 20px;">
           <div class="section-card-head" style="margin-bottom: 14px; flex-wrap: wrap;">
             <div>
-              <div class="section-card-title">
+              <div class="section-card-title" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                 <svg style="color:var(--green);"><use href="#i-map"/></svg>
                 <span>Live Abhol-Karte & Übergabe-Punkte</span>
+                <span class="stock-badge in-stock" style="font-size:11px; padding:2px 8px; font-weight:600; text-transform:none; letter-spacing:normal;">
+                  🟢 100% Free OpenStreetMap API · Kein Login / Kein Account
+                </span>
               </div>
-              <div class="section-card-subtitle">Klicke auf einen Punkt oder Schnell-Filter für Details & Kunden-Deal</div>
+              <div class="section-card-subtitle">Automatische Geokodierung für Seekirchen, Straßwalchen, Neumarkt, Salzburg & ganz Österreich</div>
             </div>
             <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
               <button class="chip" onclick="flyMapTo('seekirchen')">📍 Seekirchen</button>
@@ -1759,7 +1762,7 @@
 
   <!-- APPLICATION LOGIC -->
   <script>
-    // ── Geocoding & Local Coordinate Dictionary ────────────────────────────────
+    // ── 100% Free OpenStreetMap & Nominatim Geocoding (0 Logins, 0 API Keys, 0 Costs) ────
     const CITY_COORDINATES = {
       'seekirchen': { lat: 47.9014, lng: 13.1256, name: 'Seekirchen am Wallersee' },
       'hendorf': { lat: 47.9000, lng: 13.1850, name: 'Feuerwehr Henndorf' },
@@ -1772,9 +1775,24 @@
       'braunau': { lat: 48.2563, lng: 13.0365, name: 'Braunau am Inn' },
       'salzburg': { lat: 47.8130, lng: 13.0450, name: 'Salzburg Stadt' },
       'unterlochen': { lat: 48.1067, lng: 13.1611, name: 'Unterlochen (Schalchen)' },
+      'schalchen': { lat: 48.1133, lng: 13.1550, name: 'Schalchen' },
       'mondsee': { lat: 47.8561, lng: 13.3514, name: 'Mondsee' },
       'eugendorf': { lat: 47.8683, lng: 13.1261, name: 'Eugendorf' },
-      'mattighofen': { lat: 48.1031, lng: 13.1492, name: 'Mattighofen' }
+      'mattighofen': { lat: 48.1031, lng: 13.1492, name: 'Mattighofen' },
+      'hallein': { lat: 47.6828, lng: 13.0975, name: 'Hallein' },
+      'wals': { lat: 47.7889, lng: 12.9850, name: 'Wals-Siezenheim' },
+      'anif': { lat: 47.7500, lng: 13.0667, name: 'Anif' },
+      'oberndorf': { lat: 47.9417, lng: 12.9444, name: 'Oberndorf bei Salzburg' },
+      'bürmoos': { lat: 47.9833, lng: 12.9333, name: 'Bürmoos' },
+      'thalgau': { lat: 47.8444, lng: 13.2556, name: 'Thalgau' },
+      'fuschl': { lat: 47.7967, lng: 13.3031, name: 'Fuschl am See' },
+      'st. gilgen': { lat: 47.7667, lng: 13.3667, name: 'St. Gilgen' },
+      'vöcklabruck': { lat: 48.0083, lng: 13.6556, name: 'Vöcklabruck' },
+      'voecklabruck': { lat: 48.0083, lng: 13.6556, name: 'Vöcklabruck' },
+      'linz': { lat: 48.3064, lng: 14.2858, name: 'Linz' },
+      'wels': { lat: 48.1569, lng: 14.0247, name: 'Wels' },
+      'gmunden': { lat: 47.9183, lng: 13.7994, name: 'Gmunden' },
+      'ried': { lat: 48.2100, lng: 13.4889, name: 'Ried im Innkreis' }
     };
 
     function resolveCoords(locationText) {
@@ -1783,6 +1801,47 @@
       for (const [key, val] of Object.entries(CITY_COORDINATES)) {
         if (lower.includes(key)) return [val.lat, val.lng];
       }
+      return null;
+    }
+
+    // Free OpenStreetMap Nominatim Geocoding API (0 Logins, 0 API Keys, 0 Business Accounts)
+    async function resolveCoordsAsync(locationText) {
+      if (!locationText) return null;
+      const local = resolveCoords(locationText);
+      if (local) return local;
+
+      // 1. Try local bot backend if running
+      try {
+        const ipcRes = await fetch(`${IPC_URL}/api/geocode?q=${encodeURIComponent(locationText)}`, { signal: AbortSignal.timeout(1500) });
+        if (ipcRes.ok) {
+          const data = await ipcRes.json();
+          if (data && data.coords) {
+            CITY_COORDINATES[locationText.toLowerCase().trim()] = { lat: data.coords[0], lng: data.coords[1], name: locationText };
+            return data.coords;
+          }
+        }
+      } catch (_) {}
+
+      // 2. Direct OpenStreetMap Nominatim API (100% Free & Open Source)
+      try {
+        const cleanQuery = locationText.replace(/[\(\)\[\],-]/g, ' ').trim();
+        const url = `https://nominatim.openstreetmap.org/search?format=json&countrycodes=at&limit=1&q=${encodeURIComponent(cleanQuery)}`;
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' }, signal: AbortSignal.timeout(3500) });
+        if (res.ok) {
+          const results = await res.json();
+          if (results && results.length > 0) {
+            const lat = parseFloat(results[0].lat);
+            const lng = parseFloat(results[0].lon);
+            if (!isNaN(lat) && !isNaN(lng)) {
+              CITY_COORDINATES[locationText.toLowerCase().trim()] = { lat, lng, name: results[0].display_name };
+              return [lat, lng];
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[Free OSM Nominatim Lookup]:', err.message);
+      }
+
       return null;
     }
 
@@ -2370,22 +2429,23 @@
       }
     }
 
-    function jumpToAppointmentOnMap(coords, locationText) {
+    async function jumpToAppointmentOnMap(coords, locationText) {
       switchTab('calendar');
+      let finalCoords = coords;
+      if (!finalCoords && locationText) {
+        finalCoords = resolveCoords(locationText) || await resolveCoordsAsync(locationText);
+      }
       setTimeout(() => {
         if (!map) initMap();
-        if (coords && map) {
-          map.flyTo(coords, 14, { duration: 1.2 });
-          const key = `${coords[0].toFixed(4)}_${coords[1].toFixed(4)}`;
+        if (finalCoords && map) {
+          map.flyTo(finalCoords, 14, { duration: 1.2 });
+          const key = `${finalCoords[0].toFixed(4)}_${finalCoords[1].toFixed(4)}`;
           const marker = locationMarkersMap.get(key);
           if (marker) {
             setTimeout(() => marker.openPopup(), 1250);
           }
-        } else if (locationText) {
-          const resolved = resolveCoords(locationText);
-          if (resolved) jumpToAppointmentOnMap(resolved, locationText);
         }
-      }, 100);
+      }, 120);
     }
 
     // ── Appointments Management ───────────────────────────────────────────────
@@ -2507,7 +2567,15 @@
 
       const dateObj = new Date(dtVal);
       const timeStr = dateObj.toLocaleString('de-AT', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-      const coords = resolveCoords(location) || [47.9014, 13.1256]; // Default to Seekirchen if not specified
+      
+      // Auto-resolve via 100% Free OpenStreetMap Geocoding (0 Logins, 0 API Keys)
+      let coords = resolveCoords(location);
+      if (!coords) {
+        coords = await resolveCoordsAsync(location);
+      }
+      if (!coords) {
+        coords = [47.9014, 13.1256]; // Fallback to Seekirchen center
+      }
 
       const newApp = {
         id: 'app-' + Date.now().toString(36),
