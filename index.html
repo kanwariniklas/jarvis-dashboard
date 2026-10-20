@@ -629,6 +629,18 @@
       background: #090d0c !important;
       font-family: var(--font) !important;
     }
+    /* Pitch-Black Dark Mode Matrix on Pure OpenStreetMap (0 External Dependencies, 0 Logins) */
+    .leaflet-tile-pane {
+      filter: brightness(0.65) invert(1) contrast(1.5) hue-rotate(195deg) saturate(0.28) brightness(0.72) !important;
+    }
+    /* Completely eliminate all attribution/branding popups & watermarks */
+    .leaflet-control-attribution,
+    .leaflet-bottom.leaflet-right .leaflet-control-attribution {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
     .leaflet-bar {
       border: 1px solid var(--line-bright) !important;
       border-radius: 8px !important;
@@ -2297,13 +2309,19 @@
         attributionControl: false
       }).setView([47.93, 13.20], 10);
 
+      // Ensure any default attribution control is fully removed
+      if (map.attributionControl) {
+        map.attributionControl.remove();
+      }
+
       // Custom Dark Zoom Buttons
       L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-      // Ultra-clean CartoDB Dark Matter Tiles (Pitch Black / Neon Emerald)
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      // Pure 100% Free OpenStreetMap Tiles (0 Commercial Logins, 0 External Trackers, 0 Costs)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
-        subdomains: 'abcd'
+        subdomains: ['a', 'b', 'c'],
+        attribution: ''
       }).addTo(map);
 
       mapMarkerLayer = L.layerGroup().addTo(map);
